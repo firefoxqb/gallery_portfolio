@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AlbumList from '../../components/AlbumList.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { withBase } from '../../lib/paths';
+
+export async function getStaticPaths() {
+  const albums = await getCollection('albums');
+  return albums.map((album) => ({ params: { slug: album.id }, props: { album } }));
+}
+
+const { album } = Astro.props;
+const { title, description, date, photos } = album.data;
+
+const og = await getImage({ src: album.data.cover, width: 1200, format: 'jpeg' });
+const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+---
+
+<BaseLayout title={title} description={description || `${photos.length} photographs`} ogImage={og.src}>
+  <article class="wrap">
+    <header class="album-head">
+      <a class="album-head__back label" href={withBase('/')}>← Work</a>
+      <h1 class="album-head__title rise">{title}</h1>
+      <p class="album-head__meta rise" style="animation-delay:80ms">
+        <span class="label">{dateStr}</span>
+        <span class="label">{photos.length} frames</span>
+      </p>
+      {description && <p class="album-head__desc rise" style="animation-delay:140ms">{description}</p>}
+    </header>
+
+    <AlbumList photos={photos} />
+  </article>
+
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .album-head {
+    padding-block: clamp(1.5rem, 1rem + 3vw, 3.5rem) clamp(1.5rem, 1rem + 3vw, 3rem);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(1.5rem, 1rem + 3vw, 3rem);
+    text-align: center;
+  }
+  .album-head__back {
+    display: inline-block;
+    margin-bottom: 1.6rem;
+    transition: color 0.3s var(--ease);
+  }
+  .album-head__back:hover { color: var(--accent); }
+  .album-head__title { font-size: var(--step-3); }
+  .album-head__meta { display: flex; gap: 1.4rem; justify-content: center; margin-top: 1rem; }
+  .album-head__desc {
+    max-width: 54ch;
+    margin: 1.4rem auto 0;
+    color: var(--ink-soft);
+    font-size: var(--step-1);
+    font-family: var(--font-display);
+    font-style: italic;
+    line-height: 1.4;
+  }
+</style>

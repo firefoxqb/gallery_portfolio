@@ -1,0 +1,119 @@
+---
+import { withBase } from '../lib/paths';
+import { site } from '../data/site';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const links = [
+  { href: withBase('/'), label: 'Work' },
+  { href: withBase('/about'), label: 'About' },
+  { href: withBase('/contact'), label: 'Contact' },
+];
+const isActive = (href: string) => {
+  const clean = href.replace(/\/$/, '') || '/';
+  return clean === path || (clean === base && path === '/') || (clean === (base || '') && path === (base || '/'));
+};
+---
+
+<header class="nav">
+  <a class="brand" href={withBase('/')}>
+    <span class="brand__name">{site.name}</span>
+    <span class="brand__role label">{site.role}</span>
+  </a>
+
+  <input type="checkbox" id="nav-toggle" class="nav__toggle" hidden />
+  <label for="nav-toggle" class="nav__burger" aria-label="Menu">
+    <span></span><span></span>
+  </label>
+
+  <nav class="nav__links" aria-label="Primary">
+    {links.map((l) => (
+      <a
+        href={l.href}
+        class:list={['nav__link', { 'is-active': isActive(l.href) }]}
+        aria-current={isActive(l.href) ? 'page' : undefined}
+      >
+        {l.label}
+      </a>
+    ))}
+  </nav>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: clamp(1rem, 0.6rem + 1.4vw, 1.7rem) var(--gutter);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .brand { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  .brand__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .brand__role { transform: translateY(-1px); }
+
+  .nav__links { display: flex; gap: clamp(1.2rem, 0.5rem + 2vw, 2.6rem); }
+  .nav__link {
+    font-size: var(--step--1);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    position: relative;
+    padding-bottom: 2px;
+    transition: color 0.3s var(--ease);
+  }
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 100%; height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease);
+  }
+  .nav__link:hover { color: var(--ink); }
+  .nav__link:hover::after,
+  .nav__link.is-active::after { transform: scaleX(1); }
+  .nav__link.is-active { color: var(--ink); }
+
+  .nav__burger { display: none; }
+
+  @media (max-width: 640px) {
+    .nav { flex-wrap: wrap; align-items: center; }
+    .nav__burger {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px 2px;
+      margin-left: auto;
+    }
+    .nav__burger span {
+      width: 26px; height: 2px;
+      background: var(--ink);
+      transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+    }
+    .nav__links {
+      flex-basis: 100%;
+      flex-direction: column;
+      gap: 0.9rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s var(--ease), margin 0.4s var(--ease);
+    }
+    .nav__toggle:checked ~ .nav__links { max-height: 260px; margin-top: 0.6rem; }
+    .nav__toggle:checked ~ .nav__burger span:first-child { transform: translateY(7px) rotate(45deg); }
+    .nav__toggle:checked ~ .nav__burger span:last-child { transform: translateY(-7px) rotate(-45deg); }
+    .nav__link { font-size: var(--step-0); }
+  }
+</style>

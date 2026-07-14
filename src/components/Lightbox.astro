@@ -1,0 +1,243 @@
+---
+// Photo-detail overlay. Any element on the page with [data-lb] and the data-*
+// payload below becomes a trigger; triggers form one group in DOM order.
+//   data-full, data-w, data-h, data-alt, data-caption, data-exif(JSON)
+---
+
+<div class="lb" data-lightbox aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb__btn lb__close" data-lb-close aria-label="Close (Esc)">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+  </button>
+  <button class="lb__btn lb__nav lb__prev" data-lb-prev aria-label="Previous">
+    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+  </button>
+  <button class="lb__btn lb__nav lb__next" data-lb-next aria-label="Next">
+    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+  </button>
+
+  <figure class="lb__stage">
+    <img class="lb__img" data-lb-img alt="" />
+    <figcaption class="lb__meta">
+      <span class="lb__cap" data-lb-cap></span>
+      <button class="lb__info" data-lb-info aria-pressed="false">
+        <span class="lb__info-dot" aria-hidden="true">ⓘ</span> EXIF
+      </button>
+    </figcaption>
+    <dl class="lb__exif" data-lb-exif hidden></dl>
+  </figure>
+</div>
+
+<style>
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: clamp(0.8rem, 2vw, 2rem);
+    background: color-mix(in srgb, var(--paper) 6%, #000 94%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s var(--ease), visibility 0.35s;
+  }
+  .lb[aria-hidden='false'] { opacity: 1; visibility: visible; }
+
+  .lb__stage {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+    max-height: 100%;
+    min-height: 0;
+  }
+  .lb__img {
+    max-width: 100%;
+    max-height: 78vh;
+    width: auto;
+    object-fit: contain;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: scale(0.985);
+    transition: opacity 0.4s var(--ease), transform 0.5s var(--ease);
+    color: #f0ece3; /* alt-text colour if image fails */
+  }
+  .lb__img.is-loaded { opacity: 1; transform: none; }
+
+  .lb__meta {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    color: #cec8bd;
+    font-size: var(--step--1);
+    min-height: 1.4em;
+  }
+  .lb__cap { font-style: italic; font-family: var(--font-display); font-size: var(--step-0); }
+  .lb__info {
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: #b7b0a4;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+  }
+  .lb__info[aria-pressed='true'] { color: var(--paper); border-color: var(--accent); background: var(--accent); }
+  .lb__info[hidden] { display: none; }
+  .lb__info-dot { margin-right: 0.15em; }
+
+  .lb__exif {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: #d7d1c6;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0.35rem 1.4rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 3px;
+    backdrop-filter: blur(4px);
+  }
+  .lb__exif[hidden] { display: none; }
+  .lb__exif dt { color: #8f887b; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.66rem; }
+  .lb__exif dd { margin: 0; text-align: right; }
+
+  .lb__btn {
+    color: #e7e2d8;
+    display: grid;
+    place-items: center;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    transition: background 0.25s, transform 0.25s var(--ease), opacity 0.25s;
+  }
+  .lb__btn:hover { background: rgba(255, 255, 255, 0.12); }
+  .lb__close { position: absolute; top: clamp(0.8rem, 2vw, 1.6rem); right: clamp(0.8rem, 2vw, 1.6rem); }
+  .lb__nav { grid-row: 1; align-self: center; }
+  .lb__prev { grid-column: 1; }
+  .lb__next { grid-column: 3; }
+  .lb__nav[disabled] { opacity: 0.25; pointer-events: none; }
+
+  @media (max-width: 640px) {
+    .lb__nav {
+      position: absolute;
+      bottom: 1.2rem;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .lb__prev { left: 1.2rem; }
+    .lb__next { right: 1.2rem; }
+    .lb__img { max-height: 70vh; }
+  }
+</style>
+
+<script>
+  const EXIF_ORDER: [string, string][] = [
+    ['camera', 'Camera'],
+    ['lens', 'Lens'],
+    ['focal', 'Focal'],
+    ['aperture', 'Aperture'],
+    ['shutter', 'Shutter'],
+    ['iso', 'ISO'],
+    ['date', 'Date'],
+  ];
+
+  const lb = document.querySelector<HTMLElement>('[data-lightbox]');
+  if (lb) {
+    const triggers = Array.from(document.querySelectorAll<HTMLElement>('[data-lb]'));
+    const img = lb.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const cap = lb.querySelector<HTMLElement>('[data-lb-cap]')!;
+    const info = lb.querySelector<HTMLButtonElement>('[data-lb-info]')!;
+    const exifEl = lb.querySelector<HTMLElement>('[data-lb-exif]')!;
+    const prevBtn = lb.querySelector<HTMLButtonElement>('[data-lb-prev]')!;
+    const nextBtn = lb.querySelector<HTMLButtonElement>('[data-lb-next]')!;
+    const closeBtn = lb.querySelector<HTMLElement>('[data-lb-close]')!;
+
+    let current = -1;
+    let lastFocus: HTMLElement | null = null;
+
+    const show = (i: number) => {
+      const el = triggers[i];
+      if (!el) return;
+      current = i;
+      const d = el.dataset;
+      img.classList.remove('is-loaded');
+      img.src = d.full || '';
+      img.alt = d.alt || d.caption || '';
+      cap.textContent = d.caption || '';
+
+      // EXIF
+      let exif: Record<string, unknown> = {};
+      try { exif = d.exif ? JSON.parse(d.exif) : {}; } catch {}
+      const rows = EXIF_ORDER.filter(([k]) => exif[k] != null && exif[k] !== '');
+      if (rows.length) {
+        exifEl.innerHTML = rows
+          .map(([k, label]) => `<dt>${label}</dt><dd>${String(exif[k])}</dd>`)
+          .join('');
+        info.hidden = false;
+      } else {
+        info.hidden = true;
+        setExif(false);
+      }
+
+      prevBtn.toggleAttribute('disabled', i === 0);
+      nextBtn.toggleAttribute('disabled', i === triggers.length - 1);
+    };
+
+    const setExif = (open: boolean) => {
+      exifEl.hidden = !open;
+      info.setAttribute('aria-pressed', String(open));
+    };
+
+    img.addEventListener('load', () => img.classList.add('is-loaded'));
+
+    const open = (i: number) => {
+      lastFocus = document.activeElement as HTMLElement;
+      setExif(false);
+      show(i);
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    };
+    const close = () => {
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      current = -1;
+      lastFocus?.focus();
+    };
+    const step = (dir: number) => {
+      const n = current + dir;
+      if (n >= 0 && n < triggers.length) { setExif(false); show(n); }
+    };
+
+    triggers.forEach((el, i) => {
+      el.addEventListener('click', (e) => { e.preventDefault(); open(i); });
+    });
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', () => step(-1));
+    nextBtn.addEventListener('click', () => step(1));
+    info.addEventListener('click', () => setExif(exifEl.hidden));
+    lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (lb.getAttribute('aria-hidden') !== 'false') return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') step(-1);
+      else if (e.key === 'ArrowRight') step(1);
+      else if (e.key.toLowerCase() === 'i' && !info.hidden) setExif(exifEl.hidden);
+    });
+
+    // Swipe
+    let sx = 0, sy = 0;
+    lb.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    lb.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  }
+</script>

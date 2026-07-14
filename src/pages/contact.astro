@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+
+const formAction = site.formspreeId ? `https://formspree.io/f/${site.formspreeId}` : '';
+---
+
+<BaseLayout title="Contact" description={`Get in touch with ${site.name}.`}>
+  <div class="wrap wrap--narrow contact">
+    <p class="label rise">Contact</p>
+    <h1 class="contact__title rise" style="animation-delay:70ms">Let's make something.</h1>
+    <p class="contact__lede rise" style="animation-delay:130ms">
+      Prints, commissions, or just to say hello — drop a line at
+      <a class="link-underline" href={`mailto:${site.email}`}>{site.email}</a>.
+    </p>
+
+    {formAction ? (
+      <form class="form rise" style="animation-delay:190ms" action={formAction} method="POST">
+        <label class="field">
+          <span class="field__label label">Name</span>
+          <input type="text" name="name" required autocomplete="name" />
+        </label>
+        <label class="field">
+          <span class="field__label label">Email</span>
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field__label label">Message</span>
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <button type="submit" class="form__submit">Send message</button>
+      </form>
+    ) : (
+      <div class="mailto rise" style="animation-delay:190ms">
+        <a class="mailto__btn" href={`mailto:${site.email}`}>Email me →</a>
+        <p class="mailto__note">
+          Prefer a form? Create a free <a class="link-underline" href="https://formspree.io" target="_blank" rel="noopener">Formspree</a>
+          endpoint and set <code>formspreeId</code> in <code>src/data/site.ts</code>.
+        </p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .contact { padding-block: clamp(3rem, 2rem + 6vw, 7rem); }
+  .contact__title { font-size: var(--step-3); margin: 1.2rem 0 1.2rem; }
+  .contact__lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 48ch; margin-bottom: 2.6rem; }
+
+  .form { display: flex; flex-direction: column; gap: 1.5rem; }
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  .field__label { display: block; }
+  .field input, .field textarea {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0.6rem 0.1rem;
+    transition: border-color 0.3s var(--ease);
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+
+  .form__submit, .mailto__btn {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: var(--step--1);
+    color: var(--accent-ink);
+    background: var(--ink);
+    padding: 0.9rem 1.6rem;
+    border-radius: 2px;
+    transition: background 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .form__submit:hover, .mailto__btn:hover { background: var(--accent); transform: translateY(-2px); }
+
+  .mailto { display: flex; flex-direction: column; gap: 1.6rem; align-items: flex-start; }
+  .mailto__note { color: var(--muted); font-size: var(--step--1); max-width: 46ch; }
+  .mailto__note code { font-family: var(--font-mono); background: var(--paper-2); padding: 0.1em 0.35em; border-radius: 3px; }
+</style>

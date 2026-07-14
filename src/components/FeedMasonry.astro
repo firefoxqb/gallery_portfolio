@@ -1,0 +1,180 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { withBase } from '../lib/paths';
+import type { FeedItem } from '../lib/feed';
+
+interface Props {
+  items: FeedItem[];
+}
+const { items } = Astro.props;
+
+const SIZES = '(max-width: 560px) 50vw, (max-width: 1000px) 33vw, 24vw';
+const WIDTHS = [320, 480, 640, 900, 1200];
+
+// Pre-render a large variant for each single (opens in the lightbox).
+const rendered = await Promise.all(
+  items.map(async (item) => {
+    if (item.kind === 'single') {
+      const big = await getImage({ src: item.image, width: 2000, format: 'webp' });
+      return { item, full: big.src };
+    }
+    return { item, full: '' };
+  }),
+);
+---
+
+<div class="feed" data-masonry>
+  {rendered.map(({ item, full }, i) => (
+    <article class:list={['tile', `s-${item.size}`, 'rise']} data-tile style={`--ar:${item.ar}; animation-delay:${Math.min(i, 8) * 60}ms`}>
+      <div class="tile__inner">
+        {item.kind === 'album' ? (
+          <a class="tile__link" href={withBase(`/album/${item.slug}`)} aria-label={`${item.title} — album of ${item.count}`}>
+            <div class="tile__media">
+              <Image src={item.cover} alt={item.title} widths={WIDTHS} sizes={SIZES} />
+              <span class="tile__badge label">Album · {item.count}</span>
+            </div>
+            <div class="tile__cap">
+              <span class="tile__title">{item.title}</span>
+              <span class="tile__arrow" aria-hidden="true">→</span>
+            </div>
+          </a>
+        ) : (
+          <button
+            class="tile__link"
+            data-lb
+            data-full={full}
+            data-alt={item.alt}
+            data-caption={item.caption}
+            data-exif={JSON.stringify(item.exif ?? {})}
+            aria-label={item.caption || 'View photograph'}
+          >
+            <div class="tile__media">
+              <Image src={item.image} alt={item.alt} widths={WIDTHS} sizes={SIZES} />
+            </div>
+            {item.caption && (
+              <div class="tile__cap">
+                <span class="tile__title tile__title--single">{item.caption}</span>
+              </div>
+            )}
+          </button>
+        )}
+      </div>
+    </article>
+  ))}
+</div>
+
+<style>
+  .feed { --gap: clamp(0.55rem, 0.3rem + 1vw, 1.1rem); }
+
+  /* No-JS fallback: multicolumn, native aspect ratios preserved. */
+  .feed { columns: 2; column-gap: var(--gap); }
+  @media (min-width: 561px) { .feed { columns: 3; } }
+  @media (min-width: 1001px) { .feed { columns: 4; } }
+  .tile { break-inside: avoid; margin-bottom: var(--gap); }
+
+  /* JS-enhanced: grid masonry with per-size column spans + measured row spans. */
+  :global(html.js) .feed {
+    columns: auto;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-auto-rows: 8px;
+    gap: var(--gap);
+    --cols: 2;
+  }
+  @media (min-width: 561px) { :global(html.js) .feed { --cols: 4; } }
+  @media (min-width: 1001px) { :global(html.js) .feed { --cols: 6; } }
+  :global(html.js) .tile { margin-bottom: 0; grid-column: span var(--span, 2); }
+
+  /* Column spans per size, per breakpoint (mobile / tablet / desktop). */
+  .s-small  { --span: 1; }
+  .s-medium { --span: 2; }
+  .s-large  { --span: 2; }
+  .s-full   { --span: 2; }
+  @media (min-width: 561px) {
+    .s-small { --span: 1; } .s-medium { --span: 2; } .s-large { --span: 3; } .s-full { --span: 4; }
+  }
+  @media (min-width: 1001px) {
+    .s-small { --span: 2; } .s-medium { --span: 3; } .s-large { --span: 4; } .s-full { --span: 6; }
+  }
+
+  .tile__link { display: block; width: 100%; text-align: left; }
+  .tile__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--ar);
+    background: var(--paper-2);
+  }
+  .tile__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* box matches --ar exactly, so no crop */
+    transition: transform 0.9s var(--ease), filter 0.6s var(--ease);
+    will-change: transform;
+  }
+  .tile__link:hover .tile__media :global(img) { transform: scale(1.045); }
+
+  .tile__badge {
+    position: absolute;
+    top: 0.7rem; left: 0.7rem;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.28rem 0.55rem;
+    border-radius: 2px;
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  }
+  .tile__link:hover .tile__badge { opacity: 1; transform: none; }
+
+  .tile__cap {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0.6rem 0.15rem 0.2rem;
+  }
+  .tile__title {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    letter-spacing: -0.015em;
+  }
+  .tile__title--single { font-size: var(--step-0); font-style: italic; color: var(--ink-soft); }
+  .tile__arrow {
+    color: var(--accent);
+    transform: translateX(-4px);
+    opacity: 0;
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  }
+  .tile__link:hover .tile__arrow { opacity: 1; transform: none; }
+</style>
+
+<script>
+  const grids = () => document.querySelectorAll<HTMLElement>('[data-masonry]');
+
+  function layout() {
+    grids().forEach((grid) => {
+      const cs = getComputedStyle(grid);
+      if (cs.display !== 'grid') return; // no-JS fallback / not active
+      const row = parseFloat(cs.gridAutoRows) || 8;
+      const gap = parseFloat(cs.rowGap) || 0;
+      grid.querySelectorAll<HTMLElement>('[data-tile]').forEach((tile) => {
+        const inner = tile.firstElementChild as HTMLElement | null;
+        if (!inner) return;
+        const h = inner.getBoundingClientRect().height;
+        tile.style.gridRowEnd = `span ${Math.max(1, Math.ceil((h + gap) / (row + gap)))}`;
+      });
+    });
+  }
+
+  let raf = 0;
+  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(layout); };
+
+  schedule();
+  window.addEventListener('resize', schedule);
+  window.addEventListener('load', schedule);
+  document.fonts?.ready.then(schedule);
+  document.querySelectorAll('[data-masonry] img').forEach((img) => {
+    if (!(img as HTMLImageElement).complete) img.addEventListener('load', schedule, { once: true });
+  });
+</script>

@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+import { gear } from '../data/gear';
+
+// To add a headshot: drop an image at src/assets/portrait.jpg, then uncomment:
+// import { Image } from 'astro:assets';
+// import portrait from '../assets/portrait.jpg';
+---
+
+<BaseLayout title="About" description={site.intro[0]}>
+  <div class="wrap about">
+    <section class="about__intro">
+      <p class="label rise">About</p>
+      <h1 class="about__lede rise" style="animation-delay:70ms">{site.intro[0]}</h1>
+      {site.intro.slice(1).map((p, i) => (
+        <p class="about__body rise" style={`animation-delay:${140 + i * 60}ms`}>{p}</p>
+      ))}
+      <p class="about__loc label rise" style="animation-delay:260ms">Based in {site.location}</p>
+    </section>
+
+    <aside class="about__side">
+      <div class="portrait" aria-hidden="true">
+        <span class="portrait__mono">{site.name.split(' ').map((w) => w[0]).join('')}</span>
+      </div>
+
+      <div class="gear">
+        <h2 class="gear__title label">Gear</h2>
+        <dl class="gear__list">
+          {gear.map((group) => (
+            <div class="gear__group">
+              <dt>{group.category}</dt>
+              <dd>
+                <ul>
+                  {group.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div class="about__links">
+        <h2 class="gear__title label">Elsewhere</h2>
+        <ul>
+          {site.socials.map((s) => (
+            <li>
+              <a class="link-underline" href={s.href} rel="me noopener" target={s.href.startsWith('http') ? '_blank' : undefined}>{s.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 1rem + 6vw, 5rem);
+    padding-block: clamp(2.5rem, 1.5rem + 6vw, 6rem);
+  }
+  @media (min-width: 860px) {
+    .about { grid-template-columns: 1.5fr 1fr; align-items: start; }
+  }
+
+  .about__lede {
+    font-size: var(--step-2);
+    font-weight: 420;
+    line-height: 1.25;
+    margin: 1.2rem 0 1.8rem;
+    text-wrap: balance;
+  }
+  .about__body { max-width: var(--measure); color: var(--ink-soft); margin-bottom: 1.2rem; font-size: var(--step-1); }
+  .about__loc { display: block; margin-top: 1.5rem; }
+
+  .about__side { display: flex; flex-direction: column; gap: 2.5rem; }
+  @media (min-width: 860px) { .about__side { position: sticky; top: 6rem; } }
+
+  .portrait {
+    aspect-ratio: 4 / 5;
+    background:
+      radial-gradient(120% 120% at 30% 20%, var(--paper-2), transparent),
+      var(--paper-2);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+  }
+  .portrait__mono {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    color: var(--muted);
+    letter-spacing: -0.03em;
+  }
+
+  .gear__title { display: block; margin-bottom: 1.1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
+  .gear__group { display: grid; grid-template-columns: 1fr; gap: 0.3rem; margin-bottom: 1.3rem; }
+  @media (min-width: 480px) { .gear__group { grid-template-columns: 8rem 1fr; gap: 1rem; } }
+  .gear__group dt { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding-top: 0.15rem; }
+  .gear__list dd { margin: 0; }
+  .gear__list ul, .about__links ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .gear__list li { color: var(--ink); }
+  .about__links a { font-size: var(--step-0); }
+</style>
