@@ -10,7 +10,7 @@
   --muted:      #8d8578;
   --line:       rgba(28, 26, 23, 0.13);
   --line-soft:  rgba(28, 26, 23, 0.07);
-  --accent:     #b0472c;
+  --accent:     #6d3bd4;
   --accent-ink: #ffffff;
 
   --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
@@ -39,7 +39,7 @@
     --muted:      #837a6c;
     --line:       rgba(236, 231, 221, 0.15);
     --line-soft:  rgba(236, 231, 221, 0.07);
-    --accent:     #df7b52;
+    --accent:     #b49bf2;
     --accent-ink: #17130f;
   }
 }
