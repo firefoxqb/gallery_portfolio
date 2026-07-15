@@ -19,11 +19,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # Project-page defaults (served at https://<owner>.github.io/<repo>).
-      # For a user page (<owner>.github.io) or a custom domain, set BASE: "/"
-      # (and SITE to your domain), or delete these two lines.
-      SITE: https://${{ github.repository_owner }}.github.io
-      BASE: /${{ github.event.repository.name }}
+      # Custom subdomain served at the domain root (see public/CNAME).
+      SITE: https://gallery.firefoxqb.com
+      BASE: /
     steps:
       - name: Checkout
         uses: actions/checkout@v4
