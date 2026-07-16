@@ -9,18 +9,13 @@ export interface GearGroup {
 export const gear: GearGroup[] = [
   {
     category: 'Bodies',
-    items: ['Sony α7 IV', 'Fujifilm X100V'],
+    items: ['Sony α6400'],
   },
   {
     category: 'Lenses',
     items: [
-      'Sony FE 24–70mm f/2.8 GM',
-      'Sony FE 35mm f/1.4 GM',
-      'Sony FE 85mm f/1.8',
+      'Sony E 16–50mm f/3.5–5.6 kit',
+      'Sigma 28–70mm f/2.8 DG DN',
     ],
-  },
-  {
-    category: 'Accessories',
-    items: ['Peak Design Travel Tripod', 'K&F Variable ND', 'Peak Design Everyday Backpack'],
   },
 ];

@@ -6,7 +6,7 @@ export const site = {
   tagline: 'Light, place, and the moments in between.',
   // Longer intro used on the About page (one paragraph per array item).
   intro: [
-    'I make photographs of places and the quiet in between — landscapes, streets, and the small scenes that usually go unnoticed.',
+    'I take photos as a hobby — mostly places and the quiet in between: landscapes, streets, and the small scenes that usually go unnoticed.',
     'This is an evolving archive of personal work. Prints and collaborations on request.',
   ],
   location: 'Kathmandu / Tokyo',
